@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -60,9 +61,9 @@ public class JdbcRewardRepositoryTests {
 
 	private void verifyRewardInserted(RewardConfirmation confirmation, Dining dining) throws SQLException {
 		assertEquals(1, getRewardCount());
-		// TODO 2: Use the JdbcTemplate to query for a map of all values in the T_REWARD table based on the
+		// TODO 2: DONE Use the JdbcTemplate to query for a map of all values in the T_REWARD table based on the
 		// confirmationNumber
-		Map<String, Object> values = null;
+		Map<String, Object> values = jdbcTemplate.queryForMap("select * from T_REWARD where CONFIRMATION_NUMBER = ?", confirmation.getConfirmationNumber());		
 		verifyInsertedValues(confirmation, dining, values);
 	}
 
@@ -77,8 +78,11 @@ public class JdbcRewardRepositoryTests {
 	}
 
 	private int getRewardCount() throws SQLException {
-		// TODO 1: Use the JdbcTemplate to query for the number of rows in the T_REWARD table
-		return -1;
+		// TODO 1: DONE - Use the JdbcTemplate to query for the number of rows in the T_REWARD table
+		
+		String sql = "select * from T_REWARD";
+		List<Map<String,Object>> queryForList = jdbcTemplate.queryForList(sql);
+		return queryForList.size();
 	}
 
 	private DataSource createTestDataSource() {

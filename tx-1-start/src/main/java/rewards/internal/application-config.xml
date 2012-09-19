@@ -15,6 +15,8 @@
 	<context:annotation-config/>
 
 	<!-- TODO 3: Add bean definition to instruction the container to look for @Transactional -->
+	
+	<tx:annotation-driven transaction-manager="transactionManager"/>
 
 	<!-- Rewards accounts for dining: the application entry-point --> 
 	<bean id="rewardNetwork" class="rewards.internal.RewardNetworkImpl">

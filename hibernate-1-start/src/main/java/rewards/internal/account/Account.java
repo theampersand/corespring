@@ -4,6 +4,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
 import rewards.AccountContribution;
 import rewards.AccountContribution.Distribution;
 
@@ -21,16 +29,26 @@ import common.money.Percentage;
  */
 // TODO 1: Map the Account class as an entity and map all the properties and relationships
 // (entityId, number, name, beneficiaries, creditCards)
+@Entity
+@Table(name="T_ACCOUNT")
 public class Account {
 
+	@Id
+	@Column(name="ID")
 	private Integer entityId;
-
+	
+	@Column(name="NUMBER")
 	private String number;
 
+	@Column(name="NAME")
 	private String name;
 
+	@OneToMany
+	@JoinColumn(name="ACCOUNT_ID")
 	private Set<Beneficiary> beneficiaries = new HashSet<Beneficiary>();
 
+	@OneToMany
+	@JoinColumn(name="ACCOUNT_ID")
 	private Set<CreditCard> creditCards = new HashSet<CreditCard>();
 
 	@SuppressWarnings("unused")

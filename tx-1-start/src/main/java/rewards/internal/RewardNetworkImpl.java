@@ -1,5 +1,10 @@
 package rewards.internal;
 
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.sun.xml.internal.ws.api.PropertySet.Property;
+
 import rewards.AccountContribution;
 import rewards.Dining;
 import rewards.RewardConfirmation;
@@ -41,8 +46,9 @@ public class RewardNetworkImpl implements RewardNetwork {
 		this.rewardRepository = rewardRepository;
 	}
 
-	// TODO 1: Add transactional annotation to identify this method as needing transactional behavior
+	// TODO 1: DONE Add transactional annotation to identify this method as needing transactional behavior
 	// TODO 4: Add non-default propagation level (don't do this until instructed)
+	@Transactional(propagation=Propagation.REQUIRED)
 	public RewardConfirmation rewardAccountFor(Dining dining) {
 		Account account = accountRepository.findByCreditCard(dining.getCreditCardNumber());
 		Restaurant restaurant = restaurantRepository.findByMerchantNumber(dining.getMerchantNumber());

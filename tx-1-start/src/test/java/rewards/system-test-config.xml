@@ -18,6 +18,10 @@
 		<jdbc:script location="classpath:rewards/testdb/test-data.sql"/>
 	</jdbc:embedded-database>
 
-	<!-- TODO 2: Define a bean named 'transactionManager' that configures a test DataSourceTransactionManager -->
+	<!-- TODO 2: DONE Define a bean named 'transactionManager' that configures a test DataSourceTransactionManager -->
+	
+	<bean name="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<property name="dataSource" ref="dataSource"></property>
+	</bean>
 
 </beans>

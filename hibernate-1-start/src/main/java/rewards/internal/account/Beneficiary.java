@@ -32,10 +32,13 @@ public class Beneficiary {
 	private Integer entityId;
 
 	// TODO 2: Finish mapping the Beneficiary object
+	@Column(name="NAME")
 	private String name;
 
+	@Column(name="ALLOCATION_PERCENTAGE")
 	private BigDecimal allocationPercentage;
 
+	@Column(name="SAVINGS")
 	private BigDecimal savings = new BigDecimal("0.00");
 
 	protected Beneficiary() {
