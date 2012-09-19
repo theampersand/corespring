@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:util="http://www.springframework.org/schema/util"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+							http://www.springframework.org/schema/util
+							http://www.springframework.org/schema/util/spring-util-3.0.xsd">
+
+	<!-- 
+		Contains alternate definitions of the test data source to gain experience with tags in the <util:/> namespace.
+		Each bean below is configured with the same property values, just in a different way.
+
+		Run AlternateDataSourceConfigTests to verify each bean creates a valid DataSource.
+		Each bean is marked 'lazy-init' so it will only be created when used by its test.
+	-->
+
+	<!-- Creates a data source by providing a java.util.List of Resource objects to the DatabasePopulator -->
+	<bean id="dataSource-createdFromList" class="org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactoryBean" lazy-init="true">
+		<property name="databaseName" value="rewards"/>
+		<property name="databasePopulator">
+			<bean class="org.springframework.jdbc.datasource.init.ResourceDatabasePopulator">
+				<property name="scripts">
+					<util:list>
+						<value>classpath:rewards/testdb/schema.sql</value>
+						<value>classpath:rewards/testdb/test-data.sql</value>
+					</util:list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<!-- Creates a data source by calling the factory bean's constructor, setting its properties from constants, then calling getObject() -->
+	<bean id="dataSource-createdFromConstants" class="org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseFactoryBean" lazy-init="true">
+		<property name="databaseName">
+			<util:constant static-field="rewards.testdb.config.Constants.TEST_DATABASE_NAME"/>
+		</property>
+		<property name="databasePopulator">
+			<bean class="org.springframework.jdbc.datasource.init.ResourceDatabasePopulator">
+				<property name="scripts">
+					<util:list>
+						<util:constant static-field="rewards.testdb.config.Constants.SCHEMA_LOCATION"/>
+						<util:constant static-field="rewards.testdb.config.Constants.TEST_DATA_LOCATION"/>
+					</util:list>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<!-- Creates a data source by calling a static factory method that accepts a java.util.Map -->
+	<bean id="dataSource-createdFromMap" factory-method="createDataSourceFromMap" class="rewards.testdb.TestDataSourceFactory" lazy-init="true">
+		<constructor-arg>
+			<util:map>
+				<entry key="testDatabaseName" value="rewards"/>
+				<entry key="schemaLocation" value="classpath:rewards/testdb/schema.sql"/>
+				<entry key="testDataLocation" value="classpath:rewards/testdb/test-data.sql"/>
+			</util:map>
+		</constructor-arg>
+	</bean>
+
+	<!-- Creates a data source by calling a static factory method that accepts a java.util.Properties -->
+	<bean id="dataSource-createdFromProperties" factory-method="createDataSourceFromProperties" class="rewards.testdb.TestDataSourceFactory" lazy-init="true">
+		<constructor-arg>
+			<util:properties location="rewards/testdb/testdb.properties"/>
+		</constructor-arg>
+	</bean>
+	
+</beans>

@@ -1,0 +1,209 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Chapter&nbsp;13.&nbsp;Module container-3: Simplifying Application Configuration</title><link rel="stylesheet" href="css/html.css" type="text/css"><meta name="generator" content="DocBook XSL-NS Stylesheets V1.73.2"><link rel="start" href="index.html" title="Spring Training - Lab Documentation"><link rel="up" href="labs.html" title="Part&nbsp;I.&nbsp;Labs"><link rel="prev" href="jms-1-lab.html" title="Chapter&nbsp;12.&nbsp;Module jms-1: Simplifying Messaging with Spring JMS"><link rel="next" href="test-1-lab.html" title="Chapter&nbsp;14.&nbsp;Module test-1: Introducing Unit and System Testing"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div xmlns:fo="http://www.w3.org/1999/XSL/Format" style="background-color:white;border:none;height:73px;border:1px solid black;"><a style="border:none;" href="http://static.springframework.org/spring-batch/" title="The Spring Framework - Spring Batch"><img style="border:none;" src="images/xdev-spring_logo.jpg"></a><a style="border:none;" href="http://www.springsource.com/" title="SpringSource - Spring from the Source"><img style="border:none;position:absolute;padding-top:0px;right:2em;" src="images/banner.png"></a></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="container-3-lab"></a>Chapter&nbsp;13.&nbsp;Module container-3: Simplifying Application Configuration</h2></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="container-3-lab-introduction"></a>13.1.&nbsp;Introduction</h2></div></div></div><p>In this lab you will gain experience with features of Spring's bean
+    container commonly used to simplify application configuration.</p><div class="orderedlist"><p class="title"><b>What you will learn:</b></p><ol type="1"><li><p>Techniques for reducing the amount of Spring configuration
+        code</p></li><li><p>How to import XML namespaces</p></li><li><p>How to use the &lt;util:/&gt; namespace to simplify common
+        configuration tasks</p></li></ol></div><div class="orderedlist"><p class="title"><b>Specific subjects you will gain experience with:</b></p><ol type="1"><li><p>Bean Definition Inheritance</p></li><li><p>Importing Configuration Files</p></li><li><p>XML Schema (XSD) Namespaces</p></li><li><p>Lazy Initialization</p></li><li><p>Factory method</p></li><li><p>Bean aliasing</p></li></ol></div><p>Estimated time to complete: 30 minutes</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="container-3-lab-instructions"></a>13.2.&nbsp;Instructions</h2></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e4972"></a>13.2.1.&nbsp;Using bean definition inheritance to reduce the amount of
+      configuration</h3></div></div></div><p>Spring provides several features that help you reduce the amount
+      of application configuration code. In this section you'll gain
+      experience with one of them called <span class="emphasis"><em>bean definition
+      inheritance</em></span>.</p><p>Bean definition inheritance is useful when you have several beans
+      that should be configured the same way. It lets you define the shared
+      configuration once, then have each bean inherit it.</p><p>In the rewards application, there is a case where bean definition
+      inheritance makes sense. Recall there are three JDBC-based repositories,
+      and each repository needs the same <code class="literal">dataSource</code>. In
+      this section, you'll use bean definition inheritance to reduce the
+      amount of repository configuration code.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e4987"></a>13.2.1.1.&nbsp;Define the <code class="literal">abstractJdbcRepository</code>
+        bean</h4></div></div></div><p>In this step, you'll define an abstract bean that centralizes
+        the configuration of the <code class="literal">dataSource</code> needed by each
+        JDBC-based repository.</p><p>Inside <code class="filename">src/main/java</code> within the
+        <code class="literal">rewards.internal</code> package find
+        <code class="filename">application-config.xml</code>. Open it. Note how the
+        <code class="literal">property</code> tag instructing Spring to set the
+        <code class="literal">dataSource</code> is currently duplicated for each
+        repository.</p><p>Now in <code class="filename">application-config.xml</code>, create an
+        abstract bean named <code class="literal">abstractJdbcRepository</code> that
+        centralizes the <code class="literal">dataSource</code> configuration. Once
+        you've done this, move on to the next step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5026"></a>13.2.1.2.&nbsp;Update each repository bean definition</h4></div></div></div><p>In this step you'll update each repository bean to extend from
+        your <code class="literal">abstractJdbcRepository</code> to inherent its
+        configuration.</p><p>In <code class="filename">application-config.xml</code>, update each
+        repository bean so it extends from your
+        <code class="literal">abstractJdbcRepository</code>, then clean up the bean
+        definition to remove the duplication.</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top">You can now in-line the bean tag defining each repository to save
+        a line of code.</td></tr></table></div><p>When you're done, move on to the next step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5046"></a>13.2.1.3.&nbsp;Visualize the updated application configuration</h4></div></div></div><p>In this step you'll see how the changes you made effect the
+        graph of your application configuration.</p><p>In the Spring Beans view for the
+        <code class="literal">container-3-start</code> project, graph the
+        <code class="literal">systemTest</code> config set. It should look like
+        this:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="90%"><tr><td align="center"><img src="images/container-3/systemTest-configset-inheritance.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 1: The updated rewards application 'systemTest'
+            config set</p></div></div><p>When you see the equivalent of Figure 1, move on to the next
+        step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5067"></a>13.2.1.4.&nbsp;Re-run the <code class="classname">RewardNetwork</code> system
+        test</h4></div></div></div><p>In this last step you will re-run your
+        <code class="classname">RewardNetworkTests</code> to verify your configuration
+        changes don't break your application.</p><p>Run <code class="filename">RewardNetworkTests</code> located within the
+        <code class="literal">rewards</code> package of your test tree. When you see
+        green, you have just verified your application still works with your
+        changes and you've completed this section. Good job!</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e5086"></a>13.2.2.&nbsp;Using the <code class="literal">&lt;import/&gt;</code> tag to combine
+      configuration fragments</h3></div></div></div><p>Using the <code class="literal">&lt;import/&gt;</code> tag is often a good
+      idea when working with multiple configuration files. In this section you
+      will refactor your configurations to use this tag and see the strengths
+      of this technique.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5097"></a>13.2.2.1.&nbsp;Refactor the system test configuration</h4></div></div></div><p>Open <code class="classname">RewardNetworkTests</code>. Note how all the
+        configuration files required to run the system test are listed in this
+        file. Now suppose you added another configuration file. You would have
+        to update your test code to accommodate this change. Now consider a
+        production web environment. In that environment you'd also have to
+        update your <code class="filename">web.xml</code> file any time the structure
+        of your application configuration changed.</p><p>The import tag allows you to create a single 'master'
+        configuration file for each environment that imports everything else.
+        This technique can simplify the code needed to bootstrap your
+        application and better insulate you from changes in your application
+        configuration structure.</p><p>In this step you will refactor your system test to include a
+        single 'master' configuration file that imports everything
+        else.</p><p>To get started first rename the
+        <code class="filename">test-infrastructure-config.xml</code> file to
+        <code class="filename">system-test-configuration.xml</code> indicating that
+        this file will fully define the configuration needed to run the system
+        test. Update your test to include only this file.</p><p>Now use the <code class="literal">&lt;import/&gt;</code> tag to import the
+        application configuration. Re-run
+        <code class="classname">RewardNetworkTests</code> to verify your configuration
+        changes don't break your application. When you see green, you have
+        verified your application works with your improved configuration
+        design. Move on to the next section.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e5128"></a>13.2.3.&nbsp;Working with the &lt;util:/&gt; namespace to simplify common
+      configuration tasks</h3></div></div></div><p>So far you have defined your entire application configuration
+      using a simple XML-based bean definition language. With this language,
+      you have already achieved a lot. You've configured Spring to:
+      </p><div class="orderedlist"><ol type="1"><li><p>Create and configure your application components</p></li><li><p>Delegate to custom factories to create application
+            components (FactoryBean)</p></li><li><p>Perform bean lifecycle callbacks (InitializingBean,
+            DisposableBean)</p></li><li><p>Invoke special beans that add in custom configuration
+            behaviors (BeanFactoryPostProcessor, BeanPostProcessor)</p></li></ol></div><p>To do this, you imported Spring's generic bean definition language
+      for each configuration file you defined:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="90%"><tr><td align="center"><img src="images/container-3/beans-xsd.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 2: The core bean definition language imported from
+          <code class="filename">spring-beans-3.0.xsd</code></p></div></div><p>Now, Spring also provides several higher-level
+      <span class="emphasis"><em>domain-specific languages</em></span> that build on its generic
+      bean definition language to further simplify common configuration tasks.
+      Each language is defined by its own XML schema with its own namespace
+      you may import. In this section, you'll learn how to import one of these
+      languages, <code class="literal">&lt;util/&gt;</code>, then use it to perform
+      useful configuration tasks.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5164"></a>13.2.3.1.&nbsp;Import the &lt;util/&gt; XML namespace</h4></div></div></div><p>The <code class="literal">&lt;util/&gt;</code> namespace contains tags
+        that offer useful configuration utilities. In this step, you'll import
+        the namespace and browse the new tags available to you.</p><p>Open <code class="filename">alternate-datasource-config.xml</code> in the
+        <code class="literal">rewards.testdb.config</code> package within
+        <code class="filename">src/test/java</code>. This is the Spring configuration
+        file you'll work primarily in during this section. Here over the next
+        few steps you'll complete several bean definitions to gain experience
+        with the <code class="literal">&lt;util/&gt;</code> namespace.</p><p>In <code class="filename">alternate-datasource-config.xml</code> you'll
+        see several TODOs, starting with TODO 1 that asks you to import the
+        <code class="literal">&lt;util/&gt;</code> namespace. You'll complete TODO 1 in
+        this step.</p><p>Import the <code class="literal">&lt;util/&gt;</code> namespace: In your
+        editor, switch to the 'Namespaces' tab and select the 'util'
+        namespace. Then switch back to the 'Source' tab. Notice that the
+        editor has added a reference to the 'util' namespace URI and XML
+        schema and associated the namespace URI with a
+        <code class="literal">util:</code> prefix.</p><p>When you have completed your import, test it. Hit
+        <code class="literal">Ctrl+Space</code> in your file body and look for new tags
+        with the <code class="literal">util:</code> prefix. If you see them, move on to
+        the next step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5210"></a>13.2.3.2.&nbsp;Run
+        <code class="classname">AlternateDataSourceConfigTests</code></h4></div></div></div><p>In the following steps you will use the new
+        <code class="literal">&lt;util/&gt;</code> tags to configure four beans in
+        different ways. You'll go through each bean one-by-one until you've
+        completed them all. As you go, you'll run tests to verify you
+        configured each bean correctly.</p><p>First things first, run
+        <code class="classname">AlternateDataSourceConfigTests</code>. Verify all 4
+        test cases fail, indicating all 4 beans need completing. On to the
+        first bean!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5225"></a>13.2.3.3.&nbsp;Complete <code class="literal">dataSource-createdFromList</code></h4></div></div></div><p>In this step, you'll complete the configuration of the bean
+        named <code class="literal">dataSource-createdFromList</code>.</p><p>Complete <code class="literal">dataSource-createdFromList</code> (TODO 1 -
+        2) by firstly setting the <code class="literal">databaseName</code> property on
+        Spring's <code class="classname">EmbeddedDatabaseFactoryBean</code> class.
+        This class is part of the Spring 3.0 embedded database support. For
+        this particular bean, the <code class="literal">databaseName</code> can just be
+        a literal string, such as "rewards".</p><p>You now need to pass the initialization scripts into this bean
+        as a list. The list will be passed into the <code class="literal">scripts</code>
+        property of an inner bean of type
+        <code class="classname">ResourceDatabasePopulator</code>. The list should
+        contain two values which are the resource locations of the
+        <code class="filename">schema.sql</code> and <code class="filename">test-data.sql</code>
+        files (in that order). Try using the
+        <code class="literal">&lt;util:list&gt;</code> tag to configure the list.</p><p>When you're done, run
+        <code class="classname">AlternateDataSourceConfigTests</code> to verify the
+        test for this bean is now passing. You should only get 3 failures now.
+        When it is passing, move on to the next step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5271"></a>13.2.3.4.&nbsp;Complete
+        <code class="literal">dataSource-createdFromConstants</code></h4></div></div></div><p>In this step, you'll complete the configuration of the bean
+        named <code class="literal">dataSource-createdFromConstants</code>.</p><p>Complete <code class="literal">dataSource-createdFromConstants</code>
+        (TODOs 3 - 4) by injecting constant values for the properties using
+        <code class="literal">&lt;util:constant/&gt;</code> tags. You will see the
+        available constants by opening the
+        <code class="classname">rewards.testdb.config.Constants</code> class. Note
+        that that this bean definition still uses the
+        <code class="classname">EmbeddedDatabaseFactoryBean</code>, so the
+        configuration simply involves replacing the literal values for
+        <code class="literal">databaseName</code> and the <code class="literal">scripts</code> in
+        the previous step with constants from the Java class.</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>Note how this bean, as well as the other beans, are marked
+          lazy (lazy-init="true"). This keeps them from being instantiated
+          eagerly when the <code class="literal">applicationContext</code> is created on
+          test <code class="literal">setUp</code>. Instead, they are instantiated only
+          when referenced by another object, such as the test methods that
+          call <code class="literal">applicationContext.getBean(String)</code>. This
+          lazy-init behavior is useful for this lab, as it allows you to test
+          each bean's construction process independently.</p></td></tr></table></div><p>All done? Run
+        <code class="classname">AlternateDataSourceConfigTests</code> to verify the
+        test for this bean passes. You should only get 2 failures now. When
+        the test passes, move on to the next step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5318"></a>13.2.3.5.&nbsp;Complete <code class="literal">dataSource-createdFromMap</code></h4></div></div></div><p>In this step, you'll complete the configuration of the bean
+        named <code class="literal">dataSource-createdFromMap</code>.</p><p>Complete <code class="literal">dataSource-createdFromMap</code> (TODO 5)
+        by passing a <code class="interfacename">java.util.Map</code> argument to
+        the <code class="methodname">createDataSourceFromMap</code> static factory
+        method on a special Factory class which has been created for you
+        called <code class="classname">TestDataSourceFactory</code>. You will need to
+        use the <code class="literal">factory-method</code> attribute to ensure that the
+        correct method is called.</p><p>The map should contain three entries for the properties
+        <code class="literal">testDatabaseName</code>,
+        <code class="literal">schemaLocation</code>, and
+        <code class="literal">testDataLocation</code>.</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>Inspect the
+          <code class="classname">AlternateDataSourceFactory. createDataSourceFromMap</code>
+          method to see its signature.</p></td></tr></table></div><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>Use the <code class="literal">constructor-arg</code>tag to declare a
+          single factory method argument.</p></td></tr></table></div><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>Nest the <code class="literal">&lt;util:map&gt;</code> tag within the
+          <code class="literal">constructor-arg</code> tag to define a map as the
+          argument value.</p></td></tr></table></div><p>Note how the <code class="literal">constructor-arg</code> tag is
+        overloaded to define factory method arguments as well as true
+        constructor arguments. Spring will not actually call a constructor
+        here, but instead will call a static factory method <span class="emphasis"><em>on a
+        class</em></span> to construct the bean. When the factory method is
+        invoked the return value gets assigned to the bean's name
+        automatically. This is shown graphically below: </p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="90%"><tr><td align="center"><img src="images/container-3/factory-method.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 3: Calling the
+              <code class="methodname">createDataSourceFromMap</code> method to get
+              the <code class="literal">dataSource</code> bean.</p></div></div><p>All done? Run
+        <code class="classname">AlternateDataSourceConfigTests</code> to verify the
+        test for this bean passes. You should only get 1 failure now. When the
+        test passes, move on to the next step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5402"></a>13.2.3.6.&nbsp;Complete
+        <code class="literal">dataSource-createdFromProperties</code></h4></div></div></div><p>In this step, you'll complete the configuration of the bean
+        named <code class="literal">dataSource-createdFromProperties</code>.</p><p>Complete <code class="literal">dataSource-createdFromProperties</code>
+        (TODO 6) by passing a
+        <code class="interfacename">java.util.Properties</code> argument to the
+        <code class="methodname">createDataSourceFromProperties</code> static factory
+        method on the <code class="classname">TestDataSourceFactory</code>. Load the
+        properties from the <code class="filename">testdb.properties</code> file in the
+        <code class="literal">rewards.testdb</code> package. Use the
+        <code class="literal">&lt;util:properties/&gt;</code> tag to do this.</p><p>Once you've done this, run
+        <code class="classname">AlternateDataSourceConfigTests</code> to verify the
+        test for this bean is passing. You should get the green bar!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e5440"></a>13.2.3.7.&nbsp;Plug the alternate data sources into your application</h4></div></div></div><p>In this last step, you'll plug each of your alternate data
+        sources into your application one at a time, then re-run your
+        <code class="classname">RewardNetworkTests</code> to verify your application
+        still works with each.</p><p>In <code class="filename">system-test-config.xml</code>, first link in
+        your alternate data source beans by importing
+        <code class="filename">testdb/config/alternate-datasource-config.xml</code>.
+        Then, rename the bean currently named <code class="literal">dataSource</code> to
+        <code class="literal">dataSource-createdFromPlaceholders</code>. Lastly, define
+        a <code class="literal">dataSource</code> alias that references the first bean
+        you want to test. Doing this will link that bean into the
+        application.</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top">You can import beans defined in other files using the
+        <code class="literal">import</code> tag.</td></tr></table></div><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top">You can define a bean alias by using the <code class="literal">alias</code>
+        tag.</td></tr></table></div><p>A graph showing a <code class="literal">dataSource</code> aliasing that
+        plugs in the <code class="literal">dataSource-createdFromConstants</code> bean
+        is shown below:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="90%"><tr><td align="center"><img src="images/container-3/aliasing-imported.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 4: <code class="literal">dataSource</code> aliases
+            <code class="literal">dataSource-createdFromConstants</code>, plugging it
+            into the application. The aliased bean can be switched
+            easily.</p></div></div><p>Once you have the <code class="literal">dataSource</code> alias pointed at
+        one of your alternate data source implementations, re-run
+        <code class="classname">RewardNetworkTests</code> and verify you get the green
+        bar indicating your application still works. Repeat the test with the
+        remaining data sources by updating where the alias points, and verify
+        you get the green bar each time.</p><p>If you got all green, congratulations! You've completed this
+        lab!</p></div></div></div></div><div xmlns:fo="http://www.w3.org/1999/XSL/Format" class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="jms-1-lab.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="test-1-lab.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter&nbsp;12.&nbsp;Module jms-1: Simplifying Messaging with Spring JMS&nbsp;</td><td width="20%" align="center"><span style="color:white;font-size:90%;"><a href="http://www.springsource.com/" title="SpringSource - Spring from the Source">Sponsored by SpringSource
+                                        </a></span></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;14.&nbsp;Module test-1: Introducing Unit and System Testing</td></tr></table></div></body></html>

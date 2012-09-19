@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.springsource.training.module</groupId>
+	<artifactId>jmx-1-demo</artifactId>
+	<packaging>war</packaging>
+	<version>3.2.1.RELEASE</version>
+	<parent> 
+		<groupId>com.springsource.training.common</groupId>
+		<artifactId>abstractWebProject</artifactId>
+		<version>1.1.7.RELEASE</version>
+	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.easymock</groupId>
+			<artifactId>easymock</artifactId>
+			<version>${easymock.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.jamonapi</groupId>
+			<artifactId>jamon</artifactId>
+			<version>${jamon.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-jmx</artifactId>
+			<version>${hibernate.version}</version>
+		</dependency>
+	</dependencies>
+
+</project>

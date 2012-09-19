@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<!-- 
+	     Infrastructure configuration to support system testing the rewards application.
+	
+		 These beans are defined in a separate file to isolate infrastructure config from application config,
+		 as infrastructure often varies between environments.  For example, in a test environment you
+		 might use a lightweight in-memory DataSource, while in production you connect to a database server
+		 with a connection pool.
+	-->
+	
+	<!-- TODO: Define a bean named 'dataSource' that configures a test DataSource -->
+		
+</beans>

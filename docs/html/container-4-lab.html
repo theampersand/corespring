@@ -1,0 +1,153 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Chapter&nbsp;4.&nbsp;Module container-4: Configuration with annotations</title><link rel="stylesheet" href="css/html.css" type="text/css"><meta name="generator" content="DocBook XSL-NS Stylesheets V1.73.2"><link rel="start" href="index.html" title="Spring Training - Lab Documentation"><link rel="up" href="labs.html" title="Part&nbsp;I.&nbsp;Labs"><link rel="prev" href="container-2-lab.html" title="Chapter&nbsp;3.&nbsp;Module container-2: Understanding the Bean Lifecycle"><link rel="next" href="aop-1-lab.html" title="Chapter&nbsp;5.&nbsp;Module aop-1: Introducing Aspect Oriented Programming"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div xmlns:fo="http://www.w3.org/1999/XSL/Format" style="background-color:white;border:none;height:73px;border:1px solid black;"><a style="border:none;" href="http://static.springframework.org/spring-batch/" title="The Spring Framework - Spring Batch"><img style="border:none;" src="images/xdev-spring_logo.jpg"></a><a style="border:none;" href="http://www.springsource.com/" title="SpringSource - Spring from the Source"><img style="border:none;position:absolute;padding-top:0px;right:2em;" src="images/banner.png"></a></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="container-4-lab"></a>Chapter&nbsp;4.&nbsp;Module container-4: Configuration with annotations</h2></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="container-4-lab-introduction"></a>4.1.&nbsp;Introduction</h2></div></div></div><p>In this lab you will gain experience using the annotation support
+    from Spring to configure the rewards application. You will use an existing
+    setup and transform that to use annotations such as @Autowired,
+    @Repository and @Service to configure the components of the application.
+    You will then run a top-down system test that uses JUnit 4 and Spring's
+    @ContextConfiguration annotation. Finally, if you have time, you will play
+    with Spring's JavaConfig support to achieve the same results.</p><div class="orderedlist"><p class="title"><b>What you will learn:</b></p><ol type="1"><li><p>How to use some of Spring's dependency injection annotations
+        such as @Autowired</p></li><li><p>The advantages and drawbacks of those annotations</p></li></ol></div><div class="orderedlist"><p class="title"><b>Specific subjects you will gain experience with:</b></p><ol type="1"><li><p>Annotation-based dependency injection</p></li><li><p>How to use Spring component scanning</p></li><li><p>How to use Spring JavaConfig</p></li></ol></div><p>Estimated time to complete: 30 minutes</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="container-4-lab-instructions"></a>4.2.&nbsp;Instructions</h2></div></div></div><p>Instructions for this lab are divided into four sections. In the
+    first section we will review an existing application configuration and
+    make sure it works correctly. The second section will use Spring's
+    annotations to configure dependency injection of the components of the
+    rewards application. In the third section, you'll configure Spring's
+    component scanning feature to create beans from the application classes
+    automatically. The final optional section will explore achieving the same
+    goals using Spring's JavaConfig support. We will use a JUnit 4 system test
+    throughout to verify that we haven't broken anything. Have fun!</p><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1894"></a>4.2.1.&nbsp;Reviewing the application</h3></div></div></div><p>In this lab, we are using a version of the rewards application
+      that is already fully functional. It has repository implementations that
+      are backed by JDBC and which connect to an in-memory embedded HSQLDB
+      database. There is no transactional behavior yet, but we will learning
+      how to define that shortly. In this lab we will rewrite some of the
+      application code to make use of annotations for configuration.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1899"></a>4.2.1.1.&nbsp;First verify that everything works</h4></div></div></div><p>The project features an integration test that verifies the
+        system's behavior. It's called
+        <code class="classname">RewardNetworkTests</code> and lives in the
+        <code class="classname">rewards</code> package. Run this test by
+        right-clicking on it and selecting 'Run As...' followed by 'JUnit
+        Test'. The test should run successfully.</p><p>Now review the configuration. If you haven't already done so,
+        open the Spring Explorer by going to 'Window', 'Show View' and by
+        selecting the Spring Explorer (sometimes it's not available yet, then
+        you have to select it from the 'Other' option). Open the Spring
+        dependency graph from the Spring Explorer tab that just appeared.
+        Expand 'Beans' and then right-click the <code class="literal">system-test</code>
+        config set and choose <span class="emphasis"><em>Open Graph</em></span>. This should
+        give you a nice overview of the dependencies between the different
+        application and infrastructure components.</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="60%"><tr><td align="center"><img src="images/container-4/dependency-graph.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 1: The dependency graph</p></div></div><p>Now open the application configuration (use CTRL+SHIFT+R to
+        quickly navigate to it) called
+        <code class="filename">application-config.xml</code> and review the XML that
+        wires up all the dependencies. As you can see, we're using constructor
+        arguments. We're including the context namespace and are enabling the
+        processing of annotations like @PostConstruct and @PreDestroy using
+        the <code class="literal">&lt;context:annotation-config/&gt;</code>
+        directive.</p><p>Remember that the infrastructure components (the DataSource for
+        example) are located in a separate application configuration file. If
+        you navigate back to the test you will see that the
+        <code class="literal">setUp()</code> method specifies the
+        <code class="classname">test-infrastructure-config.xml</code> infrastructure
+        configuration file.</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1940"></a>4.2.2.&nbsp;Dependency injection using Spring's @Autowired
+      annotations</h3></div></div></div><p>So you've fully reviewed the entire application and you've seen
+      nothing out of the ordinary. We're now going to wire the individual
+      components available in the <code class="filename">application-config.xml</code>
+      file using Spring's @Autowired annotations. In
+      <code class="filename">application-config.xml</code>, remove the
+      constructor-arguments and property definitions for the all beans. In
+      other words, the only things that'll be left are the bean identifiers
+      and the implementation types.</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>Note that removing the constructor-arguments on the
+        <code class="classname">RewardNetworkImpl</code> bean should have caused a
+        validation error in the XML. This is because we're now asking Spring
+        to invoke the default constructor in
+        <code class="classname">RewardNetworkImpl</code> and if you look at the Java
+        code, it doesn't have one. SpringSource Tool Suite assists you greatly
+        in this regard to ensure that the coupling between the XML
+        configuration and your Java code are correct.</p></td></tr></table></div><p>Try re-running the test. It should fail now. Spring has no idea
+      how to inject the dependencies anymore, since you have removed the
+      configuration directive. Next, we'll start adding configuration hints
+      using @Autowired. Previously, we shortly talked about the
+      <code class="literal">&lt;context:annotation-config/&gt;</code> directives in
+      <code class="literal">application-config.xml</code>. This element also processes
+      the @Autowired annotations, so we don't need to further modify the
+      configuration files.</p><p>Open the <code class="classname">RewardNetworkImpl</code> class and
+      annotate its constructor with the
+      <code class="interfacename">@Autowired</code> annotation. This tells Spring
+      that it should try to automatically find the beans that matches the
+      types of the constructor arguments to instantiate the class. </p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>Note that this should have fixed the validation error in
+          <code class="filename">application-config.xml</code>. SpringSource Tool Suite
+          understands the @Autowired annotation and uses it in its validation
+          processing.</p><p>Remember that you can quickly navigate from a bean definition
+          to the Java code by pointing the cursor at its class name and
+          pressing F3.</p></td></tr></table></div><p>Now open up the <code class="classname">JdbcRewardRepository</code> and
+      annotate the <code class="literal">setDataSource()</code> with that same
+      @Autowired annotation. This will tell Spring to inject the setter with a
+      instance of a bean matching the <code class="classname">DataSource</code> type.
+      You can replace the @Required annotation, because @Autowired implies
+      @Required.</p><p>Open up the <code class="classname">JdbcRestaurantRepository</code> and
+      the <code class="classname">JdbcAccountRepository</code> and do the same thing
+      as you did for the reward repository.</p><p>Now that you've finished adding instructions to automatically wire
+      the dependencies, try to run the integration test again. You should see
+      that it succeeds. </p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>Remember that if you're using configuration annotations such
+          as @Autowired, you have to enable detection of these in your Spring
+          XML configuration somewhere, otherwise they will be ignored.</p></td></tr></table></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2008"></a>4.2.3.&nbsp;Defining Spring beans using component-scanning</h3></div></div></div><p>As you might have noticed, we have so far only configured
+      dependency injection using annotations. The instructions to Spring to
+      actually create the application components is still defined in XML. In
+      this section, we will look at how to use Spring annotations to create
+      Spring beans automatically from your classes.</p><p>In your <code class="filename">application-config.xml</code> file, remove
+      the <code class="literal">&lt;context:annotation-config/&gt;</code> element and
+      add replace it with: <code class="literal">&lt;context:component-scan
+      base-package="rewards"/&gt;</code>. This configuration directive
+      turns on a feature called component scanning which looks for all classes
+      annotated with annotations such as @Component, @Repository or @Service
+      and creates Spring beans from those classes. It also enables detection
+      of the dependency injection annotations which you enabled with
+      <code class="literal">&lt;context:annotation-config/&gt;</code>. First re-run the
+      test to ensure that it still passes.</p><p>Now remove all of the bean definitions from the configuration
+      file, leaving just the <code class="literal">&lt;context:component-scan
+      .../&gt;</code> element. The test will now fail. Spring is now
+      scanning for classes which make up the components of your application,
+      but you haven't yet annotated those classes, which is why the test is
+      failing. So this is the next step. Open the Java types for those bean
+      definitions that you've just removed
+      (<code class="classname">JdbcRestaurantRepository</code>,
+      <code class="classname">JdbcAccountRepository</code>,
+      <code class="classname">RewardNetworkImpl</code> and
+      <code class="classname">JdbcRewardRepository</code>). Annotate all repositories
+      with <code class="interfacename">@Repository</code> and the service (the
+      <code class="classname">RewardNetworkImpl</code>) with
+      <code class="interfacename">@Service</code>. This will allow the component
+      scanning feature to find these components.</p><p>Re-run the test and see that it passes.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2055"></a>4.2.4.&nbsp;Using Spring's JavaConfig to configure the application</h3></div></div></div><p>In this optional section, we will look at how you could use Java
+      code to create your Spring beans and the dependencies between them. We
+      will also see how you can combine this with @Autowired and
+      component-scanning.</p><p>The first thing to do is to remove all instances of the
+      @Autowired, @Service and @Repository annotations from all of your
+      application classes. Instead, we're going to have all of the bean
+      definitions and dependency injection defined in a single Java class. The
+      main advantage of this is that all of the configuration is centralized
+      in one place and you benefit from the stronger type checking of the Java
+      compiler. It also allows you greater scope for flexibility and
+      customization as you are effectively going to be writing a factory
+      method for each bean.</p><p>Verify that the test is broken. Now, create a new Java Class in
+      the <code class="literal">rewards.internal</code> package and call it something
+      like <code class="classname">ApplicationConfig</code>. Annotate the class with
+      @Configuration. This tells Spring that the class represents Spring
+      configuration and also ensures that it will be picked up by the
+      component scanning which is already configured.</p><p>Next we need to pass in a DataSource that we can inject into our
+      repository beans. Define a private field of type
+      <code class="interfacename">DataSource</code> and annotate it with
+      @Autowired. This ensures that the ApplicationContext will pass in the
+      DataSource that we defined in our
+      <code class="filename">test-infrastructure-config.xml</code> file.</p><p>Next we need to create the bean definitions. A bean definition is
+      simply a method annotated @Bean which returns the instance of a bean.
+      The convention is that the method name will become the bean id in the
+      ApplicationContext. You'll therefore need to create four methods
+      annotated with @Bean: One for the rewardNetwork bean and three others
+      for the repositories. Start by creating method stubs for all four beans.
+      Note that you should use the interface types as the method return types
+      and that the methods don't have to be public but cannot be private.</p><p>Once you have the method stubs, you can start wiring things
+      together. The rewardNetwork() method should simply create and return an
+      instance of RewardNetworkImpl using <code class="literal">new</code> and invoke
+      the other factory methods when calling the constructor.</p><p>Finally, the repositories are coded in a similar way. You just
+      need to create an instance of the repository implementation, inject the
+      dataSource and then return the object. Note that it would have required
+      less coding if we'd chosen to use constructor injection for the
+      dataSources!</p><p>Just for fun, re-run the test.</p></div></div></div><div xmlns:fo="http://www.w3.org/1999/XSL/Format" class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="container-2-lab.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="aop-1-lab.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter&nbsp;3.&nbsp;Module container-2: Understanding the Bean Lifecycle&nbsp;</td><td width="20%" align="center"><span style="color:white;font-size:90%;"><a href="http://www.springsource.com/" title="SpringSource - Spring from the Source">Sponsored by SpringSource
+                                        </a></span></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;5.&nbsp;Module aop-1: Introducing Aspect Oriented Programming</td></tr></table></div></body></html>

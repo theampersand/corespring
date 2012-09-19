@@ -1,0 +1,147 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Chapter&nbsp;5.&nbsp;Module aop-1: Introducing Aspect Oriented Programming</title><link rel="stylesheet" href="css/html.css" type="text/css"><meta name="generator" content="DocBook XSL-NS Stylesheets V1.73.2"><link rel="start" href="index.html" title="Spring Training - Lab Documentation"><link rel="up" href="labs.html" title="Part&nbsp;I.&nbsp;Labs"><link rel="prev" href="container-4-lab.html" title="Chapter&nbsp;4.&nbsp;Module container-4: Configuration with annotations"><link rel="next" href="jdbc-1-lab.html" title="Chapter&nbsp;6.&nbsp;jdbc-1: JDBC Simplification using the JdbcTemplate"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div xmlns:fo="http://www.w3.org/1999/XSL/Format" style="background-color:white;border:none;height:73px;border:1px solid black;"><a style="border:none;" href="http://static.springframework.org/spring-batch/" title="The Spring Framework - Spring Batch"><img style="border:none;" src="images/xdev-spring_logo.jpg"></a><a style="border:none;" href="http://www.springsource.com/" title="SpringSource - Spring from the Source"><img style="border:none;position:absolute;padding-top:0px;right:2em;" src="images/banner.png"></a></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="aop-1-lab"></a>Chapter&nbsp;5.&nbsp;Module aop-1: Introducing Aspect Oriented Programming</h2></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="aop-1-lab-introduction"></a>5.1.&nbsp;Introduction</h2></div></div></div><p>In this lab you will gain experience with aspect oriented
+    programming (AOP) using the Spring AOP framework. You'll add cross-cutting
+    behavior to the rewards application and visualize it.</p><div class="orderedlist"><p class="title"><b>What you will learn:</b></p><ol type="1"><li><p>How to write an aspect</p></li><li><p>How to weave an aspect into your application</p></li><li><p>How to visualize where an aspect will be applied</p></li></ol></div><div class="orderedlist"><p class="title"><b>Specific subjects you will gain experience with:</b></p><ol type="1"><li><p>@AspectJ AOP syntax</p></li><li><p>Spring IDE AOP visualization</p></li></ol></div><p>Estimated time to complete: 45 minutes</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="aop-1-lab-instructions"></a>5.2.&nbsp;Instructions</h2></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2123"></a>5.2.1.&nbsp;Creating an Aspect</h3></div></div></div><p>Up until now you have used Spring to configure and test your
+      main-line application logic. Real-world enterprise applications also
+      demand supporting services that cut across your main-line logic. An
+      example would be security: there may be many places in your application
+      where you need to perform a security check. Historically, this may have
+      lead to copying-and-pasting code, or entangling your application code
+      with infrastructure. Today, you turn to aspect oriented programming
+      (AOP). In the following steps you will create an aspect to monitor your
+      application's data access performance.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e2128"></a>5.2.1.1.&nbsp;Create an aspect</h4></div></div></div><p>In this step you will create a performance monitoring aspect.
+        First you will define the monitoring behavior, then the rules about
+        where the behavior should be applied. You'll use the
+        <code class="literal">@Aspect</code> style.</p><p>You're in luck: the definition of the aspect has already been
+        started for you. Find it in the
+        <code class="literal">rewards.internal.aspects</code> package:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="40%"><tr><td align="center"><img src="images/aop-1/repositoryperformancemonitor.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 1: The
+          RepositoryPerformanceMonitor</p></div></div><p>Open this file and you'll see several TODOs for you to complete.
+        First, complete <code class="literal">TODO 1</code> by annotating the
+        <code class="classname">RepositoryPerformanceMonitor</code> class with the
+        <code class="literal">@Aspect</code> annotation. That will indicate this class
+        is an aspect that contains cross-cutting behavior called "advice" that
+        should be woven into your application.</p><p>Next, scroll down to the definition of the
+        <code class="literal">monitor(ProceedingJoinPoint)</code> method. This is the
+        method you will weave into your application to monitor its
+        performance.</p><p>You aren't interested in monitoring <span class="emphasis"><em>every</em></span>
+        method of your application, though, only a subset. Specifically,
+        you're only interested in monitoring your repositories, the objects
+        responsible for data access in the application. This will give you a
+        gauge of your data access performance.</p><p>Here is what should happen: before any repository is invoked,
+        your <code class="literal">monitor</code> method should be called. It should
+        then start a monitor, proceed with the repository invocation, then
+        stop the monitor after the invocation returns and log a report. This
+        is clearly "around" advice, as it will execute logic before
+        <span class="emphasis"><em>and</em></span> after your repositories. The desired "around"
+        behavior is shown graphically below:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="100%"><tr><td align="center"><img src="images/aop-1/monitor-repository-sequence-horizontal.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 2: A Stop Watch around a repository
+          method</p></div></div><p>To make this happen, complete <code class="literal">TODO 2</code> by
+        annotating the <code class="literal">monitor(ProceedingJointPoint)</code> method
+        with the <code class="literal">@Around</code> annotation. Its expression should match any method on the
+        <code class="literal">AccountRepository</code>,
+        <code class="literal">RestaurantRepository</code>, or
+        <code class="literal">RewardRepository</code> interfaces. </p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>Refer back to the AspectJ pointcut expression language
+            reference in the training material to help you.</p></td></tr></table></div><p>Now in <code class="literal">monitor(ProceedingJoinPoint)</code> notice
+        the <code class="classname">Monitor</code> start and stop logic has already
+        been written for you. What has not been written is the logic to
+        proceed with the target method invocation after the watch is started.
+        Complete <code class="literal">TODO 3</code> by adding the proceed call. </p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>Remember, the call to
+            <code class="methodname">repositoryMethod.proceed()</code> returns the
+            target method's return value. Make sure to return that value out,
+            otherwise you may change the value returned by a
+            repository!</p></td></tr></table></div><p>Once you've added the proceed call, run the
+        <code class="literal">RepositoryPerformanceMonitorTest</code> class in the test
+        tree. If you get the green bar, your monitoring behavior has been
+        implemented correctly. Now all you have to do is make sure this
+        behavior gets woven into the right places.</p><p>You now have fully defined the aspect expressing where performance 
+        monitoring behavior should apply. Move on to the next step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e2231"></a>5.2.1.2.&nbsp;Configure Spring to weave the aspect into the
+        application</h4></div></div></div><p>Now that your aspect has been defined, you will create the
+        Spring configuration needed to weave it into your application.</p><p>Find the <code class="filename">aspects-config.xml</code> file inside the
+        <code class="literal">rewards.internal.aspects</code> package. In this file,
+        first define a bean of class
+        <code class="classname">RepositoryPerformanceMonitor</code> (TODO 4). This
+        will deploy your aspect as a Spring bean. Note that the
+        RepositoryPerformanceMonitor takes a monitor factory as a constructor
+        argument. A factory has already been defined for you.</p><p>Next, add the <code class="literal">&lt;aop:aspectj-autoproxy&gt;</code>
+        tag to this file (TODO 5). This instructs Spring to process beans that
+        have the <code class="literal">@Aspect</code> annotation by weaving them into
+        the application using the proxy pattern. This weaving behavior is
+        shown graphically below:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="100%"><tr><td align="center"><img src="images/aop-1/autoproxycreator.png" align="middle" width="100%"></td></tr></table><div class="caption"><p> Figure 3: Spring's auto proxy creator weaving an
+          aspect into the application using the proxy pattern
+          </p></div></div><p>Figure 4 shows the internal structure of a created proxy and
+        what happens when it is invoked:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="80%"><tr><td align="center"><img src="images/aop-1/proxystructure.png" align="middle" width="100%"></td></tr></table><div class="caption"><p> Figure 4: A proxy that applies performance
+          monitoring to a <code class="classname">JdbcAccountRepository</code>
+          </p></div></div><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="images/note.png"></td><th align="left">Note</th></tr><tr><td align="left" valign="top"><p>Note it is not required, but it is generally recommended that
+          you explicitly denote what beans are aspects in the XML
+          configuration. To do this add an
+          <code class="literal">&lt;aop:include/&gt;</code> tag inside of the
+          <code class="literal">&lt;aop:aspectj-autoproxy&gt;</code> tag. The name
+          attribute should reference the id of the bean that is an
+          aspect.</p></td></tr></table></div><p>When you have your aspect defined as a Spring bean along with
+        the autoproxy tag, move on to the next step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e2283"></a>5.2.1.3.&nbsp;Monitor application data access performance</h4></div></div></div><p>To see this aspect in action, plug it into the application's
+        system test configuration. To do that, simply add an import for
+        <code class="filename">aspects-config.xml</code> in the
+        <code class="filename">system-test-config.xml</code> file (TODO 6).</p><p>After the configuration file has been added, run
+        <code class="classname">RewardNetworkTests</code> in Eclipse and watch the
+        console. Note that this is not the same test you ran before. The
+        <code class="literal">RepositoryPerformanceMonitorTest</code> is a unit test and
+        only tests the aspect. The <code class="literal">RewardNetworkTests</code> is
+        the integration test that actually applies the aspect. You should see
+        output that looks like this:</p><pre class="programlisting">AccountRepository.findByCreditCard: Last=1.0, Calls=1.0...
+RestaurantRepository.findByMerchantNumber: Last=1.0...
+AccountRepository.updateBeneficiaries: Last=1.0...
+RewardRepository.confirmReward: Last=8.0, Calls=1.0...</pre><p>When you see repository performance monitoring output, your
+        aspect is being applied! Move on to the next step!</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e2309"></a>5.2.2.&nbsp;Visualizing Aspect Weaving</h3></div></div></div><p>AOP is a powerful way of adding cross-cutting behavior to an
+      application, but it can be difficult to visualize exactly where an
+      aspect will be applied. In the following steps you will explore
+      different ways to visualize aspects using Spring IDE. The SpringSource
+      Tool Suite will have to know about your aspects config file, but as you
+      added an <code class="literal">&lt;import/&gt;</code> statement in the previous
+      step that's taken care of automatically.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e2317"></a>5.2.2.1.&nbsp;Visualize bean cross references</h4></div></div></div><p>With your aspect configuration added, you can now open the
+        classes for both your aspect(s) and bean(s) and see visual indicators
+        of cross-cutting behavior. To verify, first open your
+        <code class="classname">RepositoryPerformanceMonitor</code> class and
+        scroll-down to the
+        <code class="methodname">monitor(ProceedingJoinPoint)</code> method:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="80%"><tr><td align="center"><img src="images/aop-1/springide-gutter-1.png" align="middle" width="100%"></td></tr></table><div class="caption"><p> Figure 5: The arrow gutter icon indicates that the
+          <code class="methodname">monitor</code> method is an around advice that
+          advises one or more beans </p></div></div><p>As another example, open
+        <code class="classname">JdbcRestaurantRepository</code> and scroll to the
+        <code class="methodname">findByMerchantNumber(String)</code> method:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="60%"><tr><td align="center"><img src="images/aop-1/springide-gutter-2.png" align="middle" width="100%"></td></tr></table><div class="caption"><p> Figure 6: The arrow gutter icon indicates the
+          <code class="methodname">findByMerchantNumber</code> method is advised
+          </p></div></div><p>These particular displays are somewhat limited because they only
+        indicate a method is advice or is being advised. For more information
+        on what is being advised by an aspect you turn on the Beans Cross
+        References view. To do this, from the menu bar select <span class="emphasis"><em>Window
+        -&gt; Show View -&gt; Other...</em></span> Then, expand the Spring node
+        and select Beans Cross References. You'll see the Beans Cross
+        References view appear in the bottom page area:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="100%"><tr><td align="center"><img src="images/aop-1/springide-beans-cross-references.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 7: The <code class="classname">monitor</code> around
+          advice advises several beans</p></div></div><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>If the cross references aren't being displayed, check that the
+          view is "live" by clicking the icon with the two gold arrows
+          pointing in opposite directions (it shows as a depressed button when
+          it is active).</p></td></tr></table></div><p>Explore the Beans Cross References view to see how the
+        <code class="methodname">monitor</code> around advice advises your beans,
+        then move to the next step.</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e2376"></a>5.2.2.2.&nbsp;Visualize cross-cutting behavior application-wide with the AJDT
+        Visualizer</h4></div></div></div><p>The Beans Cross References view is a useful way of visualizing
+        how a single aspect is applied to multiple classes. However, it
+        doesn't provide a high-level visualization of all the cross-cutting
+        behavior in your system. To provide this, Spring IDE integrates with
+        the AJDT Aspect Visualization perspective.</p><p>Open the Aspect Visualization perspective by selecting
+        <span class="emphasis"><em>Window -&gt; Open Perspective -&gt; Other... -&gt; Aspect
+        Visualization</em></span>. When the perspective is open click on the
+        <span class="emphasis"><em>Menu</em></span> pull down in the
+        <span class="emphasis"><em>Visualize</em></span> view and choose
+        <span class="emphasis"><em>Preferences</em></span>.</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="70%"><tr><td align="center"><img src="images/aop-1/visualizer-preferences.png" align="middle" width="100%"></td></tr></table><div class="caption"><p> Figure 8: Open the visualizer preferences with the
+          <span class="emphasis"><em>Menu</em></span> pull down </p></div></div><p>Next choose the Spring AOP provider and press OK. This will tell
+        AJDT to use Spring AOP when drawing its aspect graphics.</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="80%"><tr><td align="center"><img src="images/aop-1/spring-aop-provider.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 9: The Spring AOP Provider</p></div></div><p>In the left most panel, select the
+        <code class="literal">aop-1-start</code> project. You will see all of the
+        classes in the project displayed with colored bands where an aspect is
+        applied. In this example, you should see blue bands on your
+        repositories indicating they are advised by the
+        <code class="classname">RepositoryPerformanceMonitor</code>. This is shown
+        below:</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="80%"><tr><td align="center"><img src="images/aop-1/springide-visualizer.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 10: The AJDT visualizer showing aspects
+          application-wide</p></div></div><p>Explore the AJDT Visualizer. When you're finished, you've
+        completed the lab! You've just created a piece of cross-cutting logic
+        called an aspect and applied it to your application. In the second
+        half of the lab, you used visualization tools provided by SpringSource Tool Suite
+        to understand where your aspect is applied.</p></div></div></div></div><div xmlns:fo="http://www.w3.org/1999/XSL/Format" class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="container-4-lab.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="jdbc-1-lab.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter&nbsp;4.&nbsp;Module container-4: Configuration with annotations&nbsp;</td><td width="20%" align="center"><span style="color:white;font-size:90%;"><a href="http://www.springsource.com/" title="SpringSource - Spring from the Source">Sponsored by SpringSource
+                                        </a></span></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;6.&nbsp;jdbc-1: JDBC Simplification using the JdbcTemplate</td></tr></table></div></body></html>

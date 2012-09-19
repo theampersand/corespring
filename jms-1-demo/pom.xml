@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.springsource.training.module</groupId>
+	<artifactId>jms-1-demo</artifactId>
+	<packaging>jar</packaging>
+	<version>3.2.1.RELEASE</version>
+
+	<parent>
+		<groupId>com.springsource.training.common</groupId>
+		<artifactId>abstractHibernateProject</artifactId>
+		<version>1.1.7.RELEASE</version>
+	</parent>
+
+	<dependencies>		
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-jms</artifactId>
+			<version>${spring.framework.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.activemq</groupId>
+			<artifactId>activemq-core</artifactId>
+			<version>${activemq.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.geronimo.specs</groupId>
+			<artifactId>geronimo-jms_1.1_spec</artifactId>
+			<version>${jms.version}</version>
+		</dependency>
+	</dependencies>
+
+</project>

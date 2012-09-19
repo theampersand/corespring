@@ -1,0 +1,265 @@
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+   <title>Chapter&nbsp;3.&nbsp;Module container-2: Understanding the Bean Lifecycle</title><link rel="stylesheet" href="css/html.css" type="text/css"><meta name="generator" content="DocBook XSL-NS Stylesheets V1.73.2"><link rel="start" href="index.html" title="Spring Training - Lab Documentation"><link rel="up" href="labs.html" title="Part&nbsp;I.&nbsp;Labs"><link rel="prev" href="container-1-lab.html" title="Chapter&nbsp;2.&nbsp;Module container-1: Using Spring to Configure an Application"><link rel="next" href="container-4-lab.html" title="Chapter&nbsp;4.&nbsp;Module container-4: Configuration with annotations"></head><body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div xmlns:fo="http://www.w3.org/1999/XSL/Format" style="background-color:white;border:none;height:73px;border:1px solid black;"><a style="border:none;" href="http://static.springframework.org/spring-batch/" title="The Spring Framework - Spring Batch"><img style="border:none;" src="images/xdev-spring_logo.jpg"></a><a style="border:none;" href="http://www.springsource.com/" title="SpringSource - Spring from the Source"><img style="border:none;position:absolute;padding-top:0px;right:2em;" src="images/banner.png"></a></div><div class="chapter" lang="en"><div class="titlepage"><div><div><h2 class="title"><a name="container-2-lab"></a>Chapter&nbsp;3.&nbsp;Module container-2: Understanding the Bean Lifecycle</h2></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="container-2-lab-introduction"></a>3.1.&nbsp;Introduction</h2></div></div></div><p>
+			In this lab you will gain experience with the lifecycle features of Spring's bean container in the context
+			of the rewards application.
+		</p><div class="orderedlist"><p class="title"><b>What you will learn:</b></p><ol type="1"><li><p>How to implement your own bean lifecycle behaviors</p></li><li><p>How to modify Spring bean definitions at runtime, and when that is useful</p></li><li><p>How to apply custom configuration behaviors to objects created by Spring</p></li></ol></div><div class="orderedlist"><p class="title"><b>Specific subjects you will gain experience with:</b></p><ol type="1"><li><p>@PostConstruct / @PreDestroy / &lt;context:annotation-config&gt;</p></li><li><p>BeanFactoryPostProcessor / PropertyPlaceholderConfigurer / &lt;context:property-placeholder&gt;</p></li><li><p>BeanPostProcessor / RequiredAnnotationBeanPostProcessor</p></li></ol></div><p>Estimated time to complete: 45 minutes</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h2 class="title" style="clear: both"><a name="container-2-lab-instructions"></a>3.2.&nbsp;Instructions</h2></div></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1282"></a>3.2.1.&nbsp;Implementing your own bean lifecycle behaviors</h3></div></div></div><p>
+				Since Spring manages the lifecycle of your application, it is well-placed to issue your callbacks at
+				various points within that lifecycle. In this section, you'll implement your own lifecycle behaviors for
+				a component (bean) of your application.
+			</p><p>
+				In the <a class="link" href="reference-domain.html" title="Reward Dining: The Course Reference Domain">reward dining</a> domain, restaurant data is read often but rarely changes.
+				This makes that data a good candidate for caching. In this section you will enhance
+				<code class="classname">JdbcRestaurantRepository</code> to cache <code class="classname">Restaurant</code> objects to
+				improve performance. You'll leverage Spring to control cache initialization and destruction, and you'll
+				run tests to verify your behavior.
+			</p><p>Here are the design requirements you should follow:</p><div class="orderedlist"><ol type="1"><li><p>
+						When your <code class="classname">JdbcRestaurantRepository</code> is initialized it should eagerly
+						populate its cache by loading all restaurants from its
+						<code class="interfacename">DataSource</code>.
+					</p></li><li><p>Each time your repository is used it should query from its cache.</p></li><li><p>When your repository is destroyed it should clear its cache to release memory.</p></li></ol></div><p>
+				The desired 'initialization' sequence is shown graphically below:
+				</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="90%"><tr><td align="center"><img src="images/container-2/caching-repository-init-sequence.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 1: A <code class="classname">JdbcRestaurantRepository</code> being initialized</p></div></div><p>
+			</p><p>
+				The desired 'use' sequence is shown below:
+				</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="90%"><tr><td align="center"><img src="images/container-2/caching-repository-use-sequence.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>
+							Figure 2: A <code class="classname">RewardNetworkImpl</code> calling a
+							<code class="classname">JdbcRestaurantRepository</code> to load Restaurants
+						</p></div></div><p>
+			</p><p>
+				The desired 'destruction' sequence is shown below:
+				</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="90%"><tr><td align="center"><img src="images/container-2/caching-repository-destroy-sequence.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 3: A <code class="classname">JdbcRestaurantRepository</code> being destroyed</p></div></div><p>
+			</p><p>With the design outlined, you are ready to implement.</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1357"></a>3.2.1.1.&nbsp;Enhance <code class="classname">JdbcRestaurantRepository</code></h4></div></div></div><p>
+					Take a look in your <code class="literal">container-2-start</code> project in the Eclipse IDE. Navigate
+					from the <code class="filename">src/main/java</code> source folder into the
+					<code class="filename">rewards.internal.restaurant</code> package. Within that package you'll find
+					<code class="classname">JdbcRestaurantRepository</code>. Open it.
+				</p><p>
+					You'll see two <code class="literal">TODOs</code> indicating tasks to be completed. To complete these,
+					enhance your <code class="classname">JdbcRestaurantRepository</code> so it will:
+					</p><div class="orderedlist"><ol type="1"><li><p>
+								Receive an initialization callback when deployed as a Spring bean. Upon initialization,
+								the <code class="methodname">populateRestaurantCache</code> method should be called to populate
+								the cache.
+							</p></li><li><p>
+								Query its cache by calling <code class="methodname">queryRestaurantCache(String)</code> when
+								asked to find a <code class="classname">Restaurant</code>.
+							</p></li><li><p>
+								Receive a destruction callback when deployed as a Spring bean. Upon destruction, the
+								<code class="methodname">clearRestaurantCache</code> method should be called to clear the cache.
+							</p></li></ol></div><p>
+				</p><p>When you've completed your enhancements, move on to the next step!</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1409"></a>3.2.1.2.&nbsp;Unit test <code class="classname">JdbcRestaurantRepository</code></h4></div></div></div><p>
+					Now it is time to verify your enhancements work. In this step, you will unit test your
+					<code class="classname">JdbcRestaurantRepository</code> in isolation. The unit test won't use Spring, but
+					will simulate the Spring bean lifecycle to initialize and destroy your repository.
+				</p><p>
+					In the <code class="filename">src/test/java</code> source folder, navigate to the
+					<code class="filename">rewards.internal.restaurant</code> package. There you will find the unit test class
+					<code class="classname">JdbcRestaurantRepositoryTests</code>. Before you go any further, run the test as-is
+					to see what happens. You'll see the red bar indicating 3 failures, along with an explanation of why
+					each test failed.
+				</p><p>
+					Now open the test class. First, you'll focus on properly testing initialization behavior. In
+					<code class="methodname">setUp</code> you'll see a <code class="classname">JdbcRestaurantRepository</code>
+					being initialized like it would if deployed as a Spring bean. The default constructor is being
+					called and the <code class="interfacename">DataSource</code> is being set (injected). There is also a
+					<code class="literal">TODO</code> asking you to issue the initialization callback as Spring would do. Do this
+					and re-run your test. You should still see red, but the failures should be different.
+				</p><p>
+					If you implemented your repository initialization and use logic correctly, you'll see that 2 of the
+					3 tests cases pass now, leaving 1 failure. The first tests a successful find, and the second tests a
+					find with a bogus merchant number. Together they verify your cache was initialized and queried
+					successfully. If you see more than 1 failure, head back to your
+					<code class="classname">JdbcRestaurantRepository</code> implementation to debug. Run the test again when you
+					think you have fixed the problem.
+				</p><p>
+					So 2 of your 3 tests are passing, but 1 is still failing: the test that verifies the cache is
+					cleared when your repository is destroyed. In <code class="methodname">tearDown</code> you'll see a
+					<code class="literal">TODO</code> asking you to issue the destruction callback as Spring would do. Do this.
+					Then, inspect the <code class="methodname">restaurantCacheClearedAfterDestroy</code> test and see how it forces
+					an eager tearDown, then verifies the cache is cleared. Re-run your test. If you implemented your
+					repository destroy logic correctly, you should see all green.
+				</p><p>
+					When you see the green bar you have proof your <code class="classname">JdbcRestaurantRepository</code>
+					works in isolation. Move on to the next step!
+				</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1465"></a>3.2.1.3.&nbsp;Re-run the <code class="classname">RewardNetwork</code> system test</h4></div></div></div><p>
+					You have verified your <code class="classname">JdbcRestaurantRepository</code> works in isolation. However,
+					you haven't verified that everything else continues to work when your repository is integrated and
+					used in your application. Specifically:
+					</p><div class="orderedlist"><ol type="1"><li><p>
+								You don't know yet if Spring will properly initialize and destroy your repository. So
+								far you've only simulated the bean lifecycle, you actually haven't tested it with
+								Spring.
+							</p></li><li><p>
+								You don't know yet if your repository causes something else in the application to fail.
+							</p></li></ol></div><p>
+				</p><p>
+					In this step, you will re-run your existing <code class="classname">RewardNetworkTests</code> to verify your
+					application, configured by Spring, still works with your repository enhancements.
+				</p><p>
+					Find <code class="classname">RewardNetworkTests</code> within the root <code class="literal">rewards</code>
+					package in <code class="filename">src/test/java</code>. Open it and run it as is. You should see a red bar
+					indicating a test failure. The test fails because Spring has not yet been configured to respect the
+					initialization and destruction annotations added in Step 1. Open
+					<code class="literal">application-config.xml</code> in the <code class="literal">src/main/java</code> in the <code class="literal">rewards.internal</code>
+					and add the configuration element that enables processing these annotations.
+					</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>
+							The <code class="literal">context</code> namespace declaration has already been added to the XML for you.
+							If you need help remembering the syntax for the element that enables annotation processing, try
+							typing <code class="literal">&lt;context:</code> and use auto-completion (<code class="literal">ctrl-space</code>)
+							to bring up a menu of available elements.
+						</p></td></tr></table></div><p>
+					</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>
+							It's a best practice to put the directive enabling the processing of these annotations in a
+							configuration file not specific to a deployment environment. Regardless of the environment,
+							we always want annotation processing to happen. This is why we are putting the directive in the
+							<code class="literal">application-config.xml</code> file and not in the 
+							<code class="literal">test-infrastructure-config.xml</code> file.
+						</p></td></tr></table></div><p>					
+				</p><p>
+					Once you've updated the configuration XML accordingly, re-run the test - you should have the green bar.
+				</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1534"></a>3.2.2.&nbsp;Close the application context properly</h3></div></div></div><p>
+					Your test seems to run fine, let us now have a closer look. Open <code class="classname">JdbcRestaurantRepository</code> and add a breakpoint to the <code class="classname">@PreDestroy</code> annotated method. Re-run <code class="classname">RewardNetworkTests</code> in debug mode. As you can see, this method is not called.
+					In the Spring lifecycle, when is any method annotated with <code class="classname">@PreDestroy</code> supposed to be called? What is missing in your test?
+				</p><p>
+					Make the appropriate changes inside <code class="classname">RewardNetworkTests.tearDown()</code>. You can run the test in debug mode one more time. The <code class="classname">@PreDestroy</code> annotated method should now be called.
+					
+				</p><p>
+					When this is done, you've completed this section! Your repository is being successfully
+					integrated into your application, and Spring is correctly issuing the lifecycle callbacks to populate and clear your cache. Good job!
+				</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1561"></a>3.2.3.&nbsp;Using bean factory post processors to modify Spring bean definitions</h3></div></div></div><p>
+				Spring has several extension points that allow you to add custom behavior at well-defined points within
+				the bean container lifecycle. In this section you will learn about one of these extension points called
+				the <span class="emphasis"><em>bean factory post processor</em></span>. You'll then gain experience with a concrete
+				implementation provided by the Spring Framework.
+			</p><p>
+				A <code class="interfacename">BeanFactoryPostProcessor</code> is a special bean that can modify the
+				definitions of other beans before they are used to create objects. How does this work? Well, Spring
+				issues each <code class="interfacename">BeanFactoryPostProcessor</code> a callback before any other bean is
+				created. Each can then change the definition of any other bean in the factory. This process is shown
+				graphically in Figure 5:
+			</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="90%"><tr><td align="center"><img src="images/container-2/bean-factory-post-processor.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 5: The bean factory post processor</p></div></div><p>
+				Bean factory post processors are useful when you want to apply changes or transformations to groups of
+				bean definitions at runtime. A good example would be to replace bean property value placeholders with
+				values from <code class="literal">.properties</code> files to allow administrators to easily tweak configuration
+				parameters. In this section, you'll do exactly that with the
+				<code class="literal">&lt;context:property-placeholder&gt;</code> element.
+			</p><p>
+				In the following steps you'll gain experience with using the <code class="literal">&lt;context:property-placeholder&gt;</code>,
+				element. This element uses <code class="classname">PropertyPlaceholderConfigurer</code>, a concrete
+				<code class="interfacename">BeanFactoryPostProcessor</code> implementation. Specifically, you
+				will move the configuration of your <code class="classname">TestDataSourceFactory</code> from
+				<code class="filename">test-infrastructure-config.xml</code> into a <code class="literal">.properties</code> file, then
+				declare a <code class="literal">&lt;context:property-placeholder&gt;</code> element to apply the configuration. By doing this,
+				you'll make it easier for administrators to safely change your configuration.
+			</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1614"></a>3.2.3.1.&nbsp;Create the <code class="literal">.properties</code> file</h4></div></div></div><p>
+					In this step you'll create a properties file that externalizes the configuration of your
+					<code class="literal">dataSource</code> factory bean.
+				</p><p>
+					Within the <code class="literal">rewards.testdb</code> package inside <code class="filename">src/test/java</code>
+					create a file named <code class="filename">testdb.properties</code>. Add the following properties:
+				</p><pre class="programlisting">schemaLocation=classpath:rewards/testdb/schema.sql
+testDataLocation=classpath:rewards/testdb/test-data.sql</pre><p>
+					Notice how these values match the current script values of the embedded <code class="literal">dataSource</code>
+					in <code class="filename">test-infrastructure-config.xml</code>. Once you've verified this, move on to the
+					next step!
+				</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1646"></a>3.2.3.2.&nbsp;Replace static property values with ${placeholders}</h4></div></div></div><p>
+					In this step you will replace the static property values in your
+					<code class="filename">test-infrastructure-config.xml</code> with placeholders.
+				</p><p>
+					In <code class="filename">test-infrastructure-config.xml</code>, replace each property value configured for
+					your <code class="literal">dataSource</code> factory bean with a placeholder. The placeholder name should
+					match the respective property name in your properties file.
+				</p><p>
+					Once you have done this, run your <code class="classname">RewardNetworkTests</code> to see if anything
+					broke. You should see the red bar indicating the placeholders are not yet being replaced with valid
+					values. One more step left to complete...
+				</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1667"></a>3.2.3.3.&nbsp;Declare a <code class="literal">&lt;context:property-placeholder&gt;</code> element</h4></div></div></div><p>
+					In this step you will declare a <code class="literal">&lt;context:property-placeholder&gt;</code> element that will
+					replace each placeholder with a value from your properties file.
+				</p><p>
+					In <code class="filename">test-infrastructure-config.xml</code>, declare an instance of the
+					<code class="literal">&lt;context:property-placeholder&gt;</code> element. Set its <code class="literal">location</code> attribute
+					to point to your properties file. Remember that this configuration will be automatically detected by
+					Spring and called before any other bean is created. No other configuration is necessary.
+				</p><p>
+					Now re-run your <code class="classname">RewardNetworkTests</code>. You should see the green bar indicating
+					your placeholders are being replaced with valid values.
+					</p><div class="tip" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Tip"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Tip]" src="images/tip.png"></td><th align="left">Tip</th></tr><tr><td align="left" valign="top"><p>
+							Even if you get green on your first attempt, try experimenting with some failure scenarios.
+							For example, try misspelling a placeholder, property name, or property value and see what
+							happens.
+						</p></td></tr></table></div><p>
+				</p><p>
+					When you have the green bar, congratulations, you have completed this section and are ready for the
+					next one!
+				</p></div></div><div class="section" lang="en"><div class="titlepage"><div><div><h3 class="title"><a name="d0e1700"></a>3.2.4.&nbsp;Using bean post processors to apply behaviors to objects created by Spring</h3></div></div></div><p>
+				Another extension point provided by Spring is the <span class="emphasis"><em>bean post processor</em></span>. In this
+				section you will learn when it is useful, and will gain experience with a concrete implementation
+				provided by the Spring Framework.
+			</p><p>
+				A <code class="interfacename">BeanPostProcessor</code> is a special bean that can modify other beans
+				<span class="emphasis"><em>after they are created</em></span> by Spring. This is different than a
+				<code class="interfacename">BeanFactoryPostProcessor</code>, which can modify
+				<span class="emphasis"><em>bean definitions</em></span> before any objects are created.
+			</p><p>
+				How do they work? Spring issues each <code class="interfacename">BeanPostProcessor</code> two callbacks for
+				every bean it creates as part of the bean initialization lifecycle. Each bean post processor can then
+				manipulate each bean instance as it sees fit. A bean post processor can even return a different object
+				back to the factory to use in place of the object created by Spring. Figures 6 shows this process
+				graphically:
+			</p><div class="mediaobject" align="center"><table border="0" summary="manufactured viewport for HTML img" cellspacing="0" cellpadding="0" width="90%"><tr><td align="center"><img src="images/container-2/bean-post-processor-init.png" align="middle" width="100%"></td></tr></table><div class="caption"><p>Figure 6: The bean post processor within the bean initialization lifecycle</p></div></div><p>
+				Bean post processors are useful when you need to apply custom configuration behaviors to groups of bean
+				instances. Often, post processors key off annotation metadata present on a bean's class to determine
+				what behaviors to apply. A good example would be to perform a dependency check on a bean properties
+				whose setter methods are marked <code class="literal">@Required</code> to enforce they have been set. In this
+				section, you will do exactly that with the <code class="classname">RequiredAnnotationBeanPostProcessor</code>, a
+				concrete <code class="interfacename">BeanPostProcessor</code> implementation.
+			</p><p>
+				In the rewards application there are several required properties. Recall that each JDBC-based repository
+				needs a <code class="classname">DataSource</code> to do its work. Currently, this data source is injected using
+				setter dependency injection. But what if you forget to call the setter? No error would be detected until
+				the repository was used. In the following steps you'll use a
+				<code class="classname">RequiredAnnotationBeanPostProcessor</code> to verify
+				<span class="emphasis"><em>at configuration time</em></span> all required properties are set properly.
+			</p><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1755"></a>3.2.4.1.&nbsp;
+					Remove the <code class="literal">dataSource</code> property from the
+					<code class="classname">JdbcAccountRepository</code>
+				</h4></div></div></div><p>
+					In this step you will break your application by removing the instruction to set the
+					<code class="interfacename">DataSource</code> for each repository.
+				</p><p>
+					Before you do anything, first run your <code class="classname">RewardNetworkTests</code> to verify your
+					application still works. Now break it temporarily by opening
+					<code class="filename">application-config.xml</code> and commenting out the <code class="literal">property</code> tag
+					that sets the <code class="literal">dataSource</code> for each repository. Re-run your
+					<code class="classname">RewardNetworkTests</code> and get the red bar as you would expect. But note how the
+					error was not caught until the application was used and the description of what went wrong isn't
+					informative. You can do better!
+				</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1786"></a>3.2.4.2.&nbsp;Add the <code class="classname">@Required</code> annotation</h4></div></div></div><p>
+					In this step you'll add a @Required annotation to each required <code class="literal">dataSource</code>
+					property.
+				</p><p>
+					Open each JDBC-based repository class and add a <code class="classname">@Required</code> annotation to the
+					<code class="literal">dataSource</code> setter method. Re-run your <code class="classname">RewardNetworkTests</code>.
+					You'll get the red bar, but notice how the error is now much more descriptive and was caught earlier. Much better!
+					</p><div class="note" style="margin-left: 0.5in; margin-right: 0.5in;"><table border="0" summary="Note: But what about configuring a RequiredAnnotationBeanPostProcessor?"><tr><td rowspan="2" align="center" valign="top" width="25"><img alt="[Note]" src="images/note.png"></td><th align="left"><p>But what about configuring a <code class="classname">RequiredAnnotationBeanPostProcessor</code>?</p></th></tr><tr><td align="left" valign="top"><p>
+							Notice that we did not explicitly define a <code class="classname">RequiredAnnotationBeanPostProcessor</code> bean,
+							yet post-processing of <code class="interfacename">@Required</code> annotations is clearly working?  This is
+							because we already defined <code class="literal">&lt;context:annotation-config&gt;</code>
+							(in the <code class="literal">application-config.xml</code> file), and remember that it
+							enables <span class="emphasis"><em>multiple</em></span> bean post processors, including
+							<code class="classname">RequiredAnnotationBeanPostProcessor</code>!  Consult the reference guide's
+							<a class="ulink" href="http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/xsd-config.html#xsd-config-body-schemas-context-ac" target="_top">section on annotation-config</a>
+							for more details.
+						</p></td></tr></table></div><p>
+				</p></div><div class="section" lang="en"><div class="titlepage"><div><div><h4 class="title"><a name="d0e1839"></a>3.2.4.3.&nbsp;Restore your application configuration</h4></div></div></div><p>
+					Nobody likes the red-bar, so put back your <code class="literal">property</code> tag to set the
+					<code class="literal">dataSource</code> and re-run your test. You should get the green bar, but now if it
+					breaks again you'll catch the bug earlier with a better error message thanks to the
+					<code class="classname">RequiredAnnotationBeanPostProcessor</code>.
+				</p><p>
+					Now re-run your <code class="classname">RewardNetworkTests</code>. If you get all green, congratulations!
+					You've completed this lab!
+				</p></div></div></div></div><div xmlns:fo="http://www.w3.org/1999/XSL/Format" class="navfooter"><hr><table width="100%" summary="Navigation footer"><tr><td width="40%" align="left"><a accesskey="p" href="container-1-lab.html">Prev</a>&nbsp;</td><td width="20%" align="center"><a accesskey="h" href="index.html">Home</a></td><td width="40%" align="right">&nbsp;<a accesskey="n" href="container-4-lab.html">Next</a></td></tr><tr><td width="40%" align="left" valign="top">Chapter&nbsp;2.&nbsp;Module container-1: Using Spring to Configure an Application&nbsp;</td><td width="20%" align="center"><span style="color:white;font-size:90%;"><a href="http://www.springsource.com/" title="SpringSource - Spring from the Source">Sponsored by SpringSource
+                                        </a></span></td><td width="40%" align="right" valign="top">&nbsp;Chapter&nbsp;4.&nbsp;Module container-4: Configuration with annotations</td></tr></table></div></body></html>

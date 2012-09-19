@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+                           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/util 
+                           http://www.springframework.org/schema/util/spring-util-3.0.xsd
+                           http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+
+	<!-- TODO 04: set the access denied page URL -->
+	<security:http use-expressions="true">
+		<security:form-login login-page="/TODO-03" authentication-failure-url="/TODO-10" />
+
+		<security:intercept-url pattern="/accounts/edit*"
+			access="hasRole('ROLE_EDITOR')" />
+		<!-- TODO 05: allow users with VIEWER role to access accounts/account* -->
+		<security:intercept-url pattern="/accounts/account*"
+			access="hasRole('ROLE_EDITOR')" />
+		<!-- TODO 07: add a catch all with the pattern /accounts/** add access for logged in users -->
+		<security:logout/>
+	</security:http>
+	 <security:authentication-manager>
+		<security:authentication-provider>
+			<!-- TODO 08: add MD5 encoding -->
+			<security:user-service properties="/WEB-INF/users.properties" />
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+</beans>
