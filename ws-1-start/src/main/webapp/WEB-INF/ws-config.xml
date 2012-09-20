@@ -10,7 +10,7 @@
 	<context:component-scan base-package="rewards.ws"/>
 	
 	<!-- TODO 4: enable the WS annotation-driven programming model -->
-
+	<ws:annotation-driven/>
 	
 	<ws:dynamic-wsdl id="rewardNetworkDefinition" portTypeName="Rewards"
 	                 locationUri="http://localhost:8080/ws-1-start/rewards">

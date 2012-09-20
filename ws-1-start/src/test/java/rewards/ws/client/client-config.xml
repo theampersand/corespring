@@ -10,7 +10,7 @@
 	<bean class="org.springframework.ws.client.core.WebServiceTemplate">
 		<property name="marshaller" ref="marshaller" />
 		<property name="unmarshaller" ref="marshaller" />
-		<property name="defaultUri" value="http://localhost:8080/ws-1-start/rewards" />
+		<property name="defaultUri" value="http://localhost:8082/ws-1-start/rewards" />
 	</bean>
 
 </beans>
